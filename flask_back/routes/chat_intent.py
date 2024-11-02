@@ -9,7 +9,11 @@ from typing import Tuple
 
 chat_intent_bp = Blueprint('chat_intent', __name__)
 
+UNKNOWN_PROMPT = "Please, I didn't understand well, could you send your intent again?"
+RETRIEVE_LAST_THREE_PROMPT = "Here are the last three intents stored in our database:\n\n{tuple_docs}"
+PREDICT_INTENT_PROMPT = "Predicted intent of the last message: {predicted_intent}"
 threshold = 0.5
+
 
 def predict_intent(tokenizer, model, label_encoder,  text:str) -> Tuple[str, float]:
     inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
@@ -25,7 +29,7 @@ def predict_intent(tokenizer, model, label_encoder,  text:str) -> Tuple[str, flo
 @chat_intent_bp.route('/chat', methods=['POST'])
 def chat_response():
     data = request.get_json()
-    user_id = data['user_id']
+    user_name = data['user_name']
     content = data['content']
     
     # Load resources to predict intent
@@ -42,21 +46,25 @@ def chat_response():
     # dealing with intents
     match predicted_intent:
         case "Unknown":
-            pass
+            final_prompt = UNKNOWN_PROMPT
         case "RetrieveLastThree":
-            last_docs = list(db.Intents.find().sort('_id', -1).limit(3))
-            tuple_docs = [(i, doc['intent']) for i, doc in enumerate(last_docs)] # 0 -> most recent
-            print(tuple_docs)
+            last_docs = list(db.Intents.find({"user_name": user_name}).sort('_id', -1).limit(3))
+            index_mapping = {0: "Last", 1: "Second to last", 2: "Third to last"}
+            
+            tuple_docs = [(index_mapping.get(i, f"Document {i+1}"), doc['intent']) for i, doc in enumerate(last_docs)]
+            intents_str = "\n".join([f"{index} -> {intent}" for index, intent in tuple_docs])
+            final_prompt = RETRIEVE_LAST_THREE_PROMPT.format(tuple_docs=intents_str)
 
             db.Intents.insert_one({
-                "user_id":user_id,
+                "user_name":user_name,
                 "intent":predicted_intent
             })
         case _:
+            final_prompt = PREDICT_INTENT_PROMPT.format(predicted_intent=predicted_intent)
             db.Intents.insert_one({
-                "user_id":user_id,
+                "user_name":user_name,
                 "intent":predicted_intent
             })
 
 
-    return jsonify({'predicted_intent': predicted_intent})
+    return jsonify({'model_response': final_prompt})
