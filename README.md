@@ -6,11 +6,7 @@
 This project is an **Intent Detection Chatbot** that predicts user intentions and interacts with a MongoDB database to retrieve the last three user intents. The chatbot provides an interactive interface for users, enhancing engagement by understanding and responding to their needs effectively.
 
 ## Demo
-
-
 ![demo](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMnNocGYxbnhycGFrdGNqMzZ4aWNtOGt4dWM1OTlqdmpnanZyeWZzMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/gVe9Z1bTD7OTSk569b/giphy.gif)
-
-
 
 ## Technical Description
 
@@ -29,6 +25,7 @@ The project is organized as follows:
 - **`flask_back/routes`**: Contains a single route `/chat` that makes predictions using the fine-tuned `'distilbert-base-uncased'` model.
 
 - **`flask_back/rsc`**: Includes resources like the tokenizer, datasets used during training, test datasets, and an example of the database.
+   - download model.safetensors and the tokenizer from this: [model rsc](https://drive.google.com/drive/folders/1RjpoTNWcwxrOyFTdtrsn92JrN0nJN-37?usp=sharing)  
 
 - **`streamlit_front/pages`**: Holds the single page that allows users to interact with the chatbot via the Streamlit interface.
 
