@@ -10,9 +10,9 @@ from typing import Tuple
 chat_intent_bp = Blueprint('chat_intent', __name__)
 
 UNKNOWN_PROMPT = "Please, I didn't understand well, could you send your intent again?"
-RETRIEVE_LAST_THREE_PROMPT = "Here are the last three intents stored in our database:\n\n{tuple_docs}"
+RETRIEVE_LAST_THREE_PROMPT = "Here are your last three intents stored in our database:\n\n{tuple_docs}"
 PREDICT_INTENT_PROMPT = "Predicted intent of the last message: {predicted_intent}"
-threshold = 0.5
+threshold = 0.605 # find_best notebook 
 
 
 def predict_intent(tokenizer, model, label_encoder,  text:str) -> Tuple[str, float]:
@@ -32,7 +32,7 @@ def chat_response():
     user_name = data['user_name']
     content = data['content']
     
-    # Load resources to predict intent
+    # load resources to predict intent
     tokenizer = AutoTokenizer.from_pretrained('./rsc/tokenizer')
     model = AutoModelForSequenceClassification.from_pretrained('./rsc/model')
     
@@ -59,6 +59,7 @@ def chat_response():
                 "user_name":user_name,
                 "intent":predicted_intent
             })
+
         case _:
             final_prompt = PREDICT_INTENT_PROMPT.format(predicted_intent=predicted_intent)
             db.Intents.insert_one({
